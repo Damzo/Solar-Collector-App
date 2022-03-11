@@ -96,34 +96,3 @@ class plot_reflected_rays:
             ipv.xlim(-rx, rx)
             ipv.ylim(-ry, ry)
             ipv.zlim(0.0, z_max)
-            
-            
-
-# Update the list of varables for calculations
-variables = L.variables
-
-# Reflected rays plotter instance
-refl_ray_plot = plot_reflected_rays(n_phi=variables['n_phi'], n_theta=variables['n_theta'], refl_rayClr_value=variables['refl_rayClr_value'], 
-                                  N=variables['ringArray_N_rings'], h=variables['parabola_height'], pt_source_pos=variables['pt_source_coordinate'],
-                                  h_2D=h_2D, focs=focs, inters=inters, rx=rx, yl_min=yl_min,yl_max=yl_max, parabola_rings=parabola_rings,
-                                  center_instance=C, left_instance=L, parabolic=parabolic_calc, ring=ring_calc)
-
-
-
-def plot_reflected_rays(*arg):
-    # Update the list of varables for calculations
-    variables = L.variables
-    value = H.collector_type.value
-    
-    # Reflected rays plotter init update
-    refl_ray_plot.update_init(n_phi=variables['n_phi'], n_theta=variables['n_theta'], refl_rayClr_value=variables['refl_rayClr_value'], 
-                              N=variables['ringArray_N_rings'], h=variables['parabola_height'], pt_source_pos=variables['pt_source_coordinate'],
-                              h_2D=h_2D, focs=focs, inters=inters, rx=rx, yl_min=yl_min,yl_max=yl_max, parabola_rings=parabola_rings,
-                              center_instance=C, left_instance=L, parabolic=parabolic_calc, ring=ring_calc)
-    
-    if value == 1:
-        refl_ray_plot.plot_reflected_parabola()
-    if value == 2:
-        refl_ray_plot.plot_reflected_ringArray()
-    
-L.plot_refl_bt.on_click(plot_reflected_rays)
