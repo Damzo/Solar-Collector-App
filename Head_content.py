@@ -17,15 +17,29 @@ class head_content:
             disabled=False)
 
     def __init__(self):
-        self.title = widgets.Label(value="Light Collector Simulator")
+        # self.title = widgets.Label(value="r",height="250px", )
+        self.title = widgets.HTML(
+                    value=" <h1 style='color:blue;margin-:100px'; text-align:center><u><b>Solar collector simulator</b></u></h1> ",
+                    # placeholder='Some HTML',
+                    # description='Some HTML',
 
+                    )
 
     def design(self):
+        box_layout = widgets.Layout(
+                # display='flex',
+                flex_flow='column',
+                margin='100px auto 50px auto',
+                # align_items='stretch',
+                width='auto',
+                justify_content='center')
+
         header_cont = widgets.VBox([
             self.title,
-            widgets.HBox([self.collector_type, self.source_geometry], width='auto')],
-            display='flex',
-            flex_flow='column',
+            widgets.HBox([self.collector_type, self.source_geometry], width='50')],
+            # display='flex',
+            # flex_flow='column',
+            layout = box_layout,
         )
 
         return header_cont
