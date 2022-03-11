@@ -75,7 +75,7 @@ class plot_reflected_rays:
         self.center_instance.main_scene.scatters.clear()
         
         for i in np.arange(self.N):
-            internal_rings.append(pmc.parabolicCollector((self.focs[i], self.focs[i], self.h_2D[i, 0]), self.pt_source_pos, 0.0, z_0=self.focs[0]-self.focs[i]))
+            internal_rings.append(pmc((self.focs[i], self.focs[i], self.h_2D[i, 0]), self.pt_source_pos, 0.0, z_0=self.focs[0]-self.focs[i]))
             rx = self.parabola_rings[i].diameter_x/2
             ry = self.parabola_rings[i].diameter_y/2
             # Incident rays symbolic expression
