@@ -1,4 +1,3 @@
-
 from parabolicCollector import parabolicCollector as pmc
 
 from decimal import *
