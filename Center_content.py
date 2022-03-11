@@ -4,7 +4,7 @@ import ipywidgets as widgets
 
 class center_content:
     style = {'description_width': 'initial'}
-    item_layout = widgets.Layout(justify_content='center', width='auto')
+    item_layout = widgets.Layout(justify_content='center', margin_left='25px')
 
     def __init__(self):
 
@@ -48,8 +48,8 @@ class center_content:
 
     def design(self):
         
-        plot_zoom_bt = widgets.Button(description='Plot Zoom', button_style='success', layout=self.item_layout)
-        plot_xy_bt = widgets.Button(description='Plot XY', button_style='success', layout=self.item_layout)
+        plot_zoom_bt = widgets.Button(description='Plot Zoom', button_style='success', layout=self.item_layout, tooltip='Plot Zoom',)
+        plot_xy_bt = widgets.Button(description='Plot XY', button_style='success', layout=self.item_layout, tooltip='Plot XY',)
         focus_xy = widgets.VBox([self.focus_zSlider, self.focus_zText, plot_xy_bt])
         zoom = widgets.VBox([self.focus_zoom, plot_zoom_bt])
         rays_color = widgets.HBox([self.inc_color_lbl, self.inc_color, self.refl_color_lbl, self.refl_color],

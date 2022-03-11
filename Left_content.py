@@ -4,10 +4,10 @@ import numpy as np
 
 class left_content:
     style = {'description_width': 'initial'}
-    item_layout = widgets.Layout(justify_content='center', width='auto')
-    plot_surf_bt = widgets.Button(description='Plot Geometry', button_style='danger', style=style,
+    item_layout = widgets.Layout( width='auto')
+    plot_surf_bt = widgets.Button(description='Plot Geometry', button_style='danger', style=style, icon='compass-dafting',
                                       layout=item_layout)
-    plot_inc_bt = widgets.Button(description='Plot Incident Rays', button_style='success', style=style,
+    plot_inc_bt = widgets.Button(description='Plot Incident Rays', button_style='warning', style=style,
                                     layout=item_layout)
     plot_refl_bt = widgets.Button(description='Plot Reflected Rays', button_style='success', style=style,
                                     layout=item_layout)
@@ -59,7 +59,7 @@ class left_content:
         self.resolution = widgets.IntText(
             value=25,
             description='Number of rays to plot',
-            disabled=False, style=self.style, layout=self.style)
+            disabled=False, style=self.style, layout=self.item_layout)
 
         self.Rin_0_widget = widgets.FloatText(
             value=0.1,
@@ -81,7 +81,9 @@ class left_content:
             value=1.0,
             description='Maximum height:',
             disabled=False, style=self.style, layout=self.item_layout)
-        self.result_label = widgets.Label(value=r'\(\color{red} {' + 'Optimization\ results\ will\ be\ shown\ here'  + '}\)')
+        # self.result_label = widgets.Label(value=r'\(\color{red} {' + 'Optimization\ results\ will\ be\ shown\ here'  + '}\)')
+        self.result_label = widgets.HTML(value=" <h5 style='color:red;margin:auto; text-align:center; font-style'>Optimization results will be shown here</h5> ",)
+
         self.source = widgets.VBox([self.source_label, self.source_posX, self.source_posY, self.source_posZ])
         # self.source = widgets.VBox([self.source_label, self.source_posX, self.source_posY, self.source_posZ, self.large_source_extend])        
         
