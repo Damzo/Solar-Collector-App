@@ -5,13 +5,11 @@ getcontext().prec = 80
 
 import numpy as np
 import ipyvolume as ipv
-import sympy as spy
 
 class plot_reflected_rays:
     
     def __init__(self, n_phi, n_theta, inters, refl_rayClr_value, h_2D, focs, pt_source_pos, rx, yl_min,yl_max, 
-                 parabola_rings, N, h,
-                 center_instance: object, left_instance: object, parabolic: object, ring:object) -> None:
+                 parabola_rings, N, h, center_instance: object, left_instance: object, parabolic: object) -> None:
 
         self.n_phi = n_phi
         self.n_theta = n_theta
@@ -29,27 +27,27 @@ class plot_reflected_rays:
         self.center_instance = center_instance
         self.left_instance = left_instance
         self.parabolic = parabolic
-        self.ring = ring
+        
 
     def update_init(self, n_phi = None, n_theta = None, inters = None, refl_rayClr_value = None, h_2D = None, 
                     focs = None, pt_source_pos = None, rx = None, yl_min = None,yl_max = None, parabola_rings = None,
-                    N = None, h = None, center_instance = None, left_instance = None, parabolic = None, ring = None):
+                    N = None, h = None, center_instance = None, left_instance = None, parabolic = None):
 
         input_data = {'n_phi':n_phi, 'n_theta':n_theta, 'inters':inters, 'refl_rayClr_value':refl_rayClr_value, 'h_2D':h_2D, 'focs':focs,
                       'pt_source_pos':pt_source_pos,'rx':rx, 'yl_min':yl_min, 'yl_max':yl_max, 'parabola_rings':parabola_rings,
-                      'N':N, 'h':h, 'center_instance':center_instance, 'left_instance':left_instance, 'parabolic':parabolic, 'ring':ring}
+                      'N':N, 'h':h, 'center_instance':center_instance, 'left_instance':left_instance, 'parabolic':parabolic}
         
         default_input_data = {'n_phi':self.n_phi, 'n_theta':self.n_theta, 'inters':self.inters, 'refl_rayClr_value':self.refl_rayClr_value, 'h_2D':self.h_2D, 'focs':self.focs,
                       'pt_source_pos':self.pt_source_pos,'rx':self.rx, 'yl_min':self.yl_min, 'yl_max':self.yl_max, 'parabola_rings':self.parabola_rings,
-                      'N':self.N, 'h':self.h, 'center_instance':self.center_instance, 'left_instance':self.left_instance, 'parabolic':self.parabolic, 'ring':self.ring}
+                      'N':self.N, 'h':self.h, 'center_instance':self.center_instance, 'left_instance':self.left_instance, 'parabolic':self.parabolic}
         for name, val in input_data.items():
             if val is None:
                 input_data[name] = default_input_data[name]
 
         self.__init__(**input_data)
-    
+
     def plot_reflected_parabola(self):
-    
+        
         phi_tab = np.linspace(0, 2*np.pi, self.n_phi, endpoint=False)
         
         ipv.figure(self.center_instance.main_scene)
@@ -79,7 +77,7 @@ class plot_reflected_rays:
             rx = self.parabola_rings[i].diameter_x/2
             ry = self.parabola_rings[i].diameter_y/2
             # Incident rays symbolic expression
-            xequ, yequ = self.parabola_rings[i].solarPointSource_ray_equation()
+            # xequ, yequ = self.parabola_rings[i].solarPointSource_ray_equation()
             # Compute intersection point equation
             inters = self.parabola_rings[i].inters_equ
             
