@@ -81,6 +81,20 @@ class left_content:
             value=1.0,
             description='Maximum height:',
             disabled=False, style=self.style, layout=self.item_layout)
+        
+        self.length = widgets.FloatText(
+            value=1.0,
+            description='Cylinder length:',
+            disabled=False, style=self.style, layout=self.item_layout)
+        self.thickness = widgets.FloatText(
+            value=1.0,
+            description='Cylinder thickness:',
+            disabled=False, style=self.style, layout=self.item_layout)
+        self.height_cyl = widgets.FloatText(
+            value=1.0,
+            description='Cylinder height:',
+            disabled=False, style=self.style, layout=self.item_layout)
+        
         # self.result_label = widgets.Label(value=r'\(\color{red} {' + 'Optimization\ results\ will\ be\ shown\ here'  + '}\)')
         self.result_label = widgets.HTML(value=" <h5 style='color:red;margin:auto; text-align:center; font-style'>Optimization results will be shown here</h5> ",)
 
@@ -106,6 +120,10 @@ class left_content:
         self.N = int(self.N_widget.value)
         self.w = self.w_widget.value  
         self.h_max = self.h_max_widget.value
+            # Cylinder
+        self.L = self.length
+        self.h_cyl = self.height_cyl
+        self.th = self.thickness
         
     
     def update_variables(self):
@@ -114,7 +132,8 @@ class left_content:
                           'inc_rayClr_value':self.inc_rayClr_value, 'refl_rayClr_value':self.refl_rayClr_value, 
                           'parabola_focus_x':self.fx, 'parabola_focus_y':self.fy, 'parabola_height':self.h, 'parabola_rot_angle':self.khoi, 
                           'ringArray_internal_ray':self.Rin_0, 'ringArray_area':self.A_target, 'ringArray_N_rings':self.N, 
-                          'ringArray_material_width':self.w, 'ringArray_h_max':self.h_max}
+                          'ringArray_material_width':self.w, 'ringArray_h_max':self.h_max, 
+                          'cylinder_length':self.L, 'cylinder_height':self.h_cyl, 'cylinder_thikness':self.th}
     
 
     def design_parabola(self):
@@ -142,6 +161,7 @@ class left_content:
         self.focus_x.observe(self.__variables_parabola,'value')
         self.focus_y.observe(self.__variables_parabola,'value')
         self.height.observe(self.__variables_parabola,'value')
+        self.rot_angle.observe(self.__variables_parabola,'value')
         self.h_object.source_geometry.observe(self.__illumination_source,'value')
         self.resolution.observe(self.__res, 'value')
         self.c_object.inc_color.observe(self.__rays_color_def, 'value')
@@ -149,8 +169,6 @@ class left_content:
         
         return left_content
 
-    
-    
     
     def design_ring_array(self):
         
@@ -178,6 +196,7 @@ class left_content:
         self.N_widget.observe(self.__variables_ringarray,'value')
         self.w_widget.observe(self.__variables_ringarray,'value')
         self.h_max_widget.observe(self.__variables_ringarray,'value')
+        self.rot_angle.observe(self.__variables_ringarray,'value')
         self.resolution.observe(self.__res, 'value')
         self.h_object.source_geometry.observe(self.__illumination_source,'value')
         self.c_object.inc_color.observe(self.__rays_color_def, 'value')
@@ -185,23 +204,38 @@ class left_content:
 
         return left_content_2
     
+    
     def design_cylindrical(self):
-
-        focus = widgets.VBox([self.focus_x, self.fy_eq_fx, self.focus_y])
+        
+        focus = widgets.VBox([self.length, self.height_cyl, self.thickness])
+        data1_cylindrical = widgets.Box([focus, self.rot_angle], layout=widgets.Layout(
+                    display='flex',
+                    flex_flow='column',
+                    border='solid 2px'
+                ))
 
         data2 = widgets.Box([self.source, self.resolution], layout=widgets.Layout(
             display='flex',
             flex_flow='column',
             border='solid 2px'
         ))
-        data1_cylindrical = widgets.Box([focus, self.height, self.rot_angle], layout=widgets.Layout(
-            display='flex',
-            flex_flow='column',
-            border='solid 2px'
-        ))
-
+        
         left_content_3 = widgets.VBox([data1_cylindrical, data2, self.plot_surf_bt, self.plot_inc_bt, self.plot_refl_bt])
 
+        self.__variables_cylinder()
+        self.__res()
+        self.update_variables()
+        
+        # observes and links
+        self.length.observe(self.__variables_cylinder, 'value')
+        self.height_cyl.observe(self.__variables_cylinder,'value')
+        self.thickness.observe(self.__variables_cylinder,'value')
+        self.rot_angle.observe(self.__variables_cylinder,'value')
+        self.h_object.source_geometry.observe(self.__illumination_source,'value')
+        self.resolution.observe(self.__res, 'value')
+        self.c_object.inc_color.observe(self.__rays_color_def, 'value')
+        self.c_object.refl_color.observe(self.__rays_color_def, 'value')
+        
         return left_content_3
 
 
@@ -273,5 +307,22 @@ class left_content:
         
         self.update_variables()
         
+    
+    def __variables_cylinder(self, *args):
+        self.L = self.length.value
+        self.th = self.thickness.value
+        self.h_cyl = self.height_cyl.value
+        self.khoi = self.rot_angle.value/180 * np.pi
+        
+        self.c_object.focus_zoom.min = 0
+        self.c_object.focus_zoom.max = 1/2
+        self.c_object.focus_zoom.min = -1/2
+        self.c_object.focus_zoom.value = [-1/2, 1/2]
+        self.c_object.focus_zSlider.min = 0
+        self.c_object.focus_zSlider.max = 1/2
+        self.c_object.focus_zSlider.min = -1/2
+        self.c_object.focus_zSlider.value = 0
+        
+        self.update_variables()
 
         

@@ -11,8 +11,9 @@ import sympy as spy
 
 class plot_geometry:
     
-    def __init__(self, fx, fy, h, pt_source_pos, khoi, Rin_0, A_target, N, w, h_max, n_theta, n_phi, 
-                 center_instance: object, left_instance: object, parabolic: object, ring:object) \
+    def __init__(self, fx, fy, h, pt_source_pos, khoi, Rin_0, A_target, N, w, h_max, L, h_cyl, th,
+                 n_theta, n_phi,
+                 center_instance: object, left_instance: object, parabolic: object, ring:object, cylinder:object) \
             -> None:
 
         self.fx = fx
@@ -25,30 +26,36 @@ class plot_geometry:
         self.N = N 
         self.w = w 
         self.h_max = h_max
+        self.L = L
+        self.h_cyl = h_cyl
+        self.th = th
         self.n_theta = n_theta
         self.n_phi = n_phi
         self.center_instance = center_instance
         self.left_instance = left_instance
         self.parabolic = parabolic
         self.ring = ring
+        self.cylinder = cylinder
 
 
     def update_init(self, fx = None, fy = None, h = None, pt_source_pos = None, khoi = None, Rin_0 = None, 
-                    A_target = None, N = None, w = None, h_max = None, n_theta = None, n_phi = None, center_instance = None,
-                    left_instance = None, parabolic = None, ring = None):
+                    L = None, h_cyl = None, th = None, A_target = None, N = None, w = None, h_max = None,
+                    n_theta = None, n_phi = None, center_instance = None,
+                    left_instance = None, parabolic = None, ring = None, cylinder = None):
 
-        input_data = {'fx':fx, 'fy':fy, 'h':h, 'khoi':khoi,
-                      'Rin_0':Rin_0, 'A_target':A_target, 'N':N,
+        input_data = {'fx':fx, 'fy':fy, 'h':h, 'khoi':khoi, 'L':L, 'h_cyl':h_cyl, 'th':th,
+                      'Rin_0':Rin_0, 'A_target':A_target, 'N':N, 
                       'w':w, 'h_max':h_max, 'pt_source_pos':pt_source_pos, 
                       'n_theta':n_theta, 'n_phi':n_phi, 'center_instance':center_instance, 'left_instance':left_instance,
-                      'parabolic':parabolic, 'ring':ring}
+                      'parabolic':parabolic, 'ring':ring, 'cylinder':cylinder}
         
-        default_input_data = {'fx':self.fx, 'fy':self.fy, 'h':self.h, 
+        default_input_data = {'fx':self.fx, 'fy':self.fy, 'h':self.h, 'L':self.L, 'h_cyl':self.h_cyl, 'th':self.th,
                               'khoi':self.khoi,'Rin_0':self.Rin_0, 'A_target':self.A_target, 
                               'N':self.N,'w':self.w, 'h_max':self.h_max, 
                               'pt_source_pos':self.pt_source_pos, 'n_theta':self.n_theta, 'n_phi':self.n_phi,
                               'center_instance':self.center_instance,'left_instance':self.left_instance,
-                              'parabolic':self.parabolic, 'ring':self.ring}
+                              'parabolic':self.parabolic, 'ring':self.ring, 'cylinder':self.cylinder}
+        
         for name, val in input_data.items():
             if val is None:
                 input_data[name] = default_input_data[name]
@@ -62,7 +69,7 @@ class plot_geometry:
         self.center_instance.main_scene.meshes.clear()
         self.center_instance.main_scene.scatters.clear()
         # General parameters
-        self.parabolic.update_init((self.fx, self.fy, self.h), self.pt_source_pos, self.khoi)
+        self.parabolic.update_init(surface=(self.fx, self.fy, self.h),sun_pos=self.pt_source_pos, khoi=self.khoi)
         phi_tab = np.linspace(0, 2*np.pi,self.n_phi, endpoint=False)
         z_tab = np.linspace(0, 2*self.h)
         rx = self.parabolic.diameter_x/2
@@ -159,3 +166,58 @@ class plot_geometry:
             self.left_instance.result_label.value = 'Failed with a RMS value = \n' + str(rms) 
             
         return parabola_rings, h_2D, focs
+
+    def plot_cylinder(self):
+        
+        ipv.figure(self.center_instance.main_scene)
+        self.center_instance.main_scene.meshes.clear()
+        self.center_instance.main_scene.scatters.clear()
+        # General parameters
+        self.cylinder.update_init(surface=(self.L, self.th, self.h_cyl), sun_pos=self.pt_source_pos, khoi=self.khoi)
+        phi_tab = np.linspace(0, 2*np.pi,self.n_phi, endpoint=False)
+        z_tab = np.linspace(-self.h_cyl, self.h_cyl)
+        rx = self.th/2
+        ry = self.L/2
+        rz = self.h_cyl
+
+        # Compute the graphical extent after the rotation (Not working very well !!!!)
+        rot_lim_1 = np.dot(self.cylinder.rot_y, (-rx, -ry, 0))
+        rot_lim_2 = np.dot(self.cylinder.rot_y, (-rx, ry, 0))
+        rot_lim_3 = np.dot(self.cylinder.rot_y, (0, -ry, -rz))
+        rot_lim_4 = np.dot(self.cylinder.rot_y, (0, ry, -rz))
+        yl_min = np.min([-rot_lim_1[1], -rot_lim_2[1], -rot_lim_3[1], -rot_lim_4[1]])
+        yl_max = np.max([-rot_lim_1[1], -rot_lim_2[1], -rot_lim_3[1], -rot_lim_4[1]])
+        zl_min = np.min([rot_lim_1[2], rot_lim_2[2], rot_lim_3[2], rot_lim_4[2]])
+        zl_max = np.max([rot_lim_1[2], rot_lim_2[2], rot_lim_3[2], rot_lim_4[2]])
+        
+        # Compute cylinder surface equation
+        x, y, z, theta, phi = spy.symbols('x y z theta phi')
+        equ = self.cylinder.symbolic_cylinder_equation()
+        cylinder_equ = spy.lambdify((x, y, z), equ, 'numpy')
+        # xx, yy, zz = np.meshgrid(np.linspace(-rx, rx), np.linspace(yl_min, yl_max), np.linspace(zl_min, zl_max), indexing='ij')
+        xx, yy, zz = np.meshgrid(np.linspace(-rx, rx), np.linspace(-ry, ry), np.linspace(-rz, 0), indexing='ij')
+        
+        values = cylinder_equ(xx, yy, zz)
+        z_rot = np.zeros(xx.shape)
+        for ii in np.arange(50):
+            for jj in np.arange(50):
+                for kk in np.arange(50):
+                    z_rot[ii,jj,kk] = np.dot(self.cylinder.rot_y, (xx[ii,jj,kk], yy[ii,jj,kk], zz[ii,jj,kk]))[2]
+
+        # values[z_rot>=self.h_cyl] = 0.1
+        
+        # Compute intersection point equation
+        inters = self.cylinder.inters_equ
+        inters_lambda = spy.lambdify((z, theta, phi), inters)
+
+        # surf = ipv.plot_isosurface(values, level=0, extent=[[-rx, rx], [yl_min, yl_max], [zl_min, zl_max]])
+        surf = ipv.plot_isosurface(values, level=0, extent=[[-rx, rx], [-ry, ry], [-rz, 0]])
+        #ipv.style.axes_off()
+        # ipv.xlim(-rx, rx)
+        # ipv.ylim(yl_min, yl_max)
+        # ipv.zlim(zl_min, zl_max+rz)
+        ipv.xlim(-rx, rx)
+        ipv.ylim(-ry, ry)
+        ipv.zlim(-rz, rz)
+        
+        return phi_tab, z_tab, rx, ry, inters, inters_lambda, yl_min, yl_max, zl_min, zl_max

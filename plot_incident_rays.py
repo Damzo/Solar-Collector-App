@@ -10,8 +10,8 @@ import sympy as spy
 class plot_incident_rays:
     
     def __init__(self, n_phi, n_theta, inters, inc_rayClr_value, h_2D, focs, pt_source_pos, rx, yl_min,yl_max, 
-                 parabola_rings, N, h,
-                 center_instance: object, left_instance: object, parabolic: object, ring:object) -> None:
+                 parabola_rings, N, h, h_cyl,
+                 center_instance: object, left_instance: object, parabolic: object, ring:object, cylinder:object) -> None:
 
         self.n_phi = n_phi
         self.n_theta = n_theta
@@ -26,22 +26,25 @@ class plot_incident_rays:
         self.parabola_rings = parabola_rings
         self.N = N
         self.h = h
+        self.h_cyl = h_cyl
         self.center_instance = center_instance
         self.left_instance = left_instance
         self.parabolic = parabolic
         self.ring = ring
+        self.cylinder = cylinder
 
     def update_init(self, n_phi = None, n_theta = None, inters = None, inc_rayClr_value = None, h_2D = None, 
                     focs = None, pt_source_pos = None, rx = None, yl_min = None,yl_max = None, parabola_rings = None,
-                    N = None, h = None, center_instance = None, left_instance = None, parabolic = None, ring = None):
+                    N = None, h = None, h_cyl = None, center_instance = None, left_instance = None, parabolic = None, ring = None, cylinder = None):
 
         input_data = {'n_phi':n_phi, 'n_theta':n_theta, 'inters':inters, 'inc_rayClr_value':inc_rayClr_value, 'h_2D':h_2D, 'focs':focs,
                       'pt_source_pos':pt_source_pos,'rx':rx, 'yl_min':yl_min, 'yl_max':yl_max, 'parabola_rings':parabola_rings,
-                      'N':N, 'h':h, 'center_instance':center_instance, 'left_instance':left_instance, 'parabolic':parabolic, 'ring':ring}
+                      'N':N, 'h':h, 'h_cyl':h_cyl, 'center_instance':center_instance, 'left_instance':left_instance, 'parabolic':parabolic, 'ring':ring, 'cylinder':cylinder}
         
         default_input_data = {'n_phi':self.n_phi, 'n_theta':self.n_theta, 'inters':self.inters, 'inc_rayClr_value':self.inc_rayClr_value, 'h_2D':self.h_2D, 'focs':self.focs,
                       'pt_source_pos':self.pt_source_pos,'rx':self.rx, 'yl_min':self.yl_min, 'yl_max':self.yl_max, 'parabola_rings':self.parabola_rings,
-                      'N':self.N, 'h':self.h, 'center_instance':self.center_instance, 'left_instance':self.left_instance, 'parabolic':self.parabolic, 'ring':self.ring}
+                      'N':self.N, 'h':self.h, 'h_cyl':self.h_cyl, 'center_instance':self.center_instance, 'left_instance':self.left_instance, 'parabolic':self.parabolic, 
+                      'ring':self.ring, 'cylinder':self.cylinder}
         for name, val in input_data.items():
             if val is None:
                 input_data[name] = default_input_data[name]
@@ -103,3 +106,26 @@ class plot_incident_rays:
             ipv.xlim(-rx, rx)
             ipv.ylim(-ry, ry)
             ipv.zlim(0.0, z_max)
+            
+    def plot_incident_cylinder(self):
+        
+        phi_tab = np.linspace(0, 2*np.pi, self.n_phi, endpoint=False)
+        
+        ipv.figure(self.center_instance.main_scene)
+        self.center_instance.main_scene.scatters.clear()
+        # Incident rays symbolic expression
+        xequ, yequ = spy.symbols('xequ yequ')
+        xequ, yequ = self.cylinder.solarPointSource_ray_equation()
+        
+        for ii in np.arange(self.n_phi):
+            phi_v = phi_tab[ii]
+            theta_limit = float(self.cylinder.cylinder_aperture_theta_limit(phi_v))
+            theta_tab = np.linspace(0, theta_limit, self.n_theta, endpoint=False)
+            for jj in np.arange(self.n_theta):
+                theta_v = theta_tab[jj]
+                z_i = self.cylinder.solve_incident_intersection(self.inters, theta_v, phi_v)
+                x_inc, y_inc, z_inc = self.cylinder.incident_ray(xequ, yequ, theta_v, phi_v, np.linspace(np.min(z_i), 2*self.h_cyl, 5))
+                ipv.plot(x_inc, y_inc, z_inc, color=self.inc_rayClr_value)
+                
+        ipv.xlim(-self.rx, self.rx)
+        ipv.ylim(self.yl_min, self.yl_max)

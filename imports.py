@@ -1,6 +1,7 @@
 
 from parabolicCollector import parabolicCollector as pmc
 from optimizeRingArray import optimizeRingArray as opra
+from cylindricalCollector import cylindricalCollector as cylc
     
 from decimal import *
 getcontext().prec = 80

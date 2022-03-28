@@ -1,30 +1,32 @@
+import imp
 import numpy as np
 import sympy as spy
+from rotationVectU import rotationVectU as rotVU
 from decimal import *
 from typing import Any, Union, Optional
 getcontext().prec = 80
 x, y, z = spy.symbols('x y z')
 
-class parabolicCollector:
+class cylindricalCollector:
     """
     This class contains all methods required to compute focus profile of a sun light collector
-    The collector has a parabolic shape of equation type Z = a*X² + b*Y²
-    The collector is delimited by it's diameter
-    with an additional freedom degree of rotation by angle 'khoi' respect to axe (OX)
-    The center of the coordinate system is the vertex of the parabola
+    The collector has a cylinder shape of equation type |vect(OM) x vect(MU)|-R.|vect(OU)|=0 
+    The collector is delimited along (oy) axis by it's length L and along (oz) axis by the half of it's height h
+    and in the (ox) axis by it's thickness th, with an additional freedom degree of rotation by angle 'khoi' respect to axe (ox)
+    The center of the coordinate system is the center of the cylinder
+    The revolution axis of the cylinder is defined by a vector vect(OU) which coordinates are x0, y0 and z0
     the sun position is defined by point S[xs, ys, zs]
     """
 
     # initialization of each instance of the class
-    def __init__(self, surface: tuple, sun_pos: tuple, khoi = 0.0, z_0 = 0.0):
+    def __init__(self, surface: tuple, revol_axis: tuple, sun_pos: tuple, khoi = 0.0, z_0 = 0.0):
         """
-        :type z_0: Z up step of the parabola (for x=0, y=0)
+        :type z_0: Z up step of the cylinder (for x=0, y=0)
         :type khoi: float value to define the rotation angle of the parabola respect to (OX) axis
         :type sun_pos: a tuple of 3 values (xs, ys, zs) to define the position of the sun compared to the parabola
-        :type surface: a tuple of 3 values (fx, fy, h) to define the parabolic surface equation
-        Z = (1/4*fx)*X² + (1/4*fy)*Y² + z_0, with:
-        (fx, fy) be the focus points related to axes X and Y for a collimated incident beam
-        h be the height of the parabola respect to horizontal plane
+        :type surface: a tuple of 3 values (L, th, h) to define the parabolic surface equation
+        :type rev_axis: a tuple of 3 values (x0, y0, z0) to define the revolution vector of the cylinder
+
         """
 
         self.khoi = khoi
@@ -33,16 +35,18 @@ class parabolicCollector:
         self.z_0 = z_0
         # Tolerence in the diameter (considering that the edge of the parabola is critical to use)
         self.edge_tol = 1e-3
-        # Parabola diameters
-        self.diameter_x = 2*np.sqrt(self.surface[2] * 4 * self.surface[0]) - self.edge_tol
-        self.diameter_y = 2*np.sqrt(self.surface[2] * 4 * self.surface[1]) - self.edge_tol
+        # Cylinder surface parameters
+        self.revol_axis = np.array(revol_axis) / (revol_axis[0]**2 + revol_axis[1]**2 + revol_axis[2]**2)**0.5
+        self.length = surface[0]
+        self.thickness = surface[1] - self.edge_tol
+        self.height = surface[2]
 
         # Rotation matrix
-        self.rot_x = np.array([[1., 0., 0.], [0., np.cos(khoi), -np.sin(khoi)], [0., np.sin(khoi), np.cos(khoi)]])
+        self.rot_y = rotVU([0, 1, 0], khoi)
         # Z coordinate of the higher point of the parabolic collector without rotation
-        self.z_max = surface[2] - self.z_0 #+ surface[1]*surface[3]**2
+        self.z_max = surface[2] - self.z_0
         # Parabola surface expression to use
-        self.surf_implicit_equ = self.symbolic_parabola_equation()
+        self.surf_implicit_equ = self.symbolic_cylinder_equation()
         # Surface gradients equations
         self.grad_x, self.grad_y, self.grad_z = self.symbolic_gradients(self.surf_implicit_equ)
         self.grad_x_lambda = spy.lambdify((x, y, z), self.grad_x, modules='numpy')
@@ -55,7 +59,7 @@ class parabolicCollector:
 
 
     # Update the variables if you want
-    def update_init(self, surface: tuple, sun_pos: tuple, khoi = 0.0, z_0 = 0.0):
+    def update_init(self, surface: tuple, sun_pos: tuple, revol_axis = (0, 1, 0), khoi = 0.0, z_0 = 0.0):
         """
         :type khoi: float value to define the rotation angle of the parabola respect to (OX) axis
         :type sun_pos: a tuple of 3 values (xs, ys, zs) to define the position of the sun compared to the parabola
@@ -63,8 +67,8 @@ class parabolicCollector:
         with D the aperture diameter of the parabola
         """
         import numpy as np
-        inputdatas = {'surface': np.array(surface), 'sun_pos': np.array(sun_pos), 'khoi': khoi, 'z_0': z_0}
-        default_inputdatas = {'surface': self.surface, 'sun_pos': self.sun_pos, 'khoi': self.khoi, 'z_0': self.z_0}
+        inputdatas = {'surface': np.array(surface),'revol_axis': np.array(revol_axis), 'sun_pos': np.array(sun_pos), 'khoi': khoi, 'z_0': z_0}
+        default_inputdatas = {'surface': self.surface, 'revol_axis': self.revol_axis, 'sun_pos': self.sun_pos, 'khoi': self.khoi, 'z_0': self.z_0}
         for name, val in inputdatas.items():
             # print('name is', name, 'and value is', val)
             if val is None:
@@ -72,49 +76,59 @@ class parabolicCollector:
 
         self.__init__(**inputdatas)
 
-    def compute_area(self, r: Union[float, np.ndarray], h: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+    def compute_area(self, minor_axis: Union[float, np.ndarray], major_axis: Union[float, np.ndarray],
+                     length: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
         """
-        :return: area of the parabola, same type as inputs. r and h should have the same shape.
-        :type h: parabola height, float or numpy array
-        :type r: parabola ray, float or numpy array
+        :return: area of the lateral cylinder, same type as inputs. r and h should have the same shape.
+        :type minor_axis: cylinder minor axis length (half of the minor vetex), float or numpy array
+        :type major_axis: cylinder major axis length (half of the minor vetex), float or numpy array
+        :type length: cylinder lateral length, float or numpy array
         """
-        if isinstance(r, np.ndarray):
-            if not np.array_equal(r.shape, h.shape):
-                raise Exception("r and h should be numpy array of the same dimension or float")
+        if isinstance(minor_axis, np.ndarray):
+            if not (np.array_equal(minor_axis.shape, major_axis.shape) &
+                    np.array_equal(minor_axis.shape, length.shape) &
+                    np.array_equal(length.shape, major_axis.shape) ):
+                raise Exception("Minor axis, major axis and length should be numpy array of the same dimension or float")
 
-        a = np.pi * r / (6 * h**2)
-        b = (r**2 + 4 * h**2)^(3/2)
-        area = a * (b - r**3)
+        a = np.pi * np.sqrt((minor_axis**2 + major_axis**2) / 2)
+        area = a * length
 
         return area
 
-    def compute_sectionLength(self, r: Union[float, np.ndarray], f: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
-        """
-        :param f: parabola focal length, float or numpy array
-        :type r: parabola ray, float or numpy array
-        :return: the section length of the parabola, same type as inputs
-        """
-        if isinstance(r, np.ndarray):
-            if not np.array_equal(r.shape, f.shape):
-                raise Exception("r and f should be numpy array of the same dimension or float")
 
-        q = np.sqrt(f**2 + r**2)
-        a = r * q / f
-        b = f * np.log((r + q) / f)
-
-        section = a + b
-
-        return section
-
-    def symbolic_parabola_equation(self):
+    def symbolic_cylinder_equation(self):
         x, y, z = spy.symbols('x y z')
-        u = spy.Matrix([x, y, z])
-        rot = spy.Matrix(self.rot_x)
+        u = spy.Matrix([x, y, z - self.z_0])
+        rot = spy.Matrix(self.rot_y)
         u_rot = rot*u
-        # Equation Z - (1/(4*fx))*X² - (1/(4*fy))*Y² - Z_0 = 0
-        a = (1. / (4. * self.surface[0]))
-        b = (1. / (4. * self.surface[1]))
-        func = spy.simplify(u_rot[2] - a * u_rot[0]**2 - b * u_rot[1]**2 - self.z_0)
+        MU_vec = u_rot - spy.Matrix(self.revol_axis)
+        # cylinder elliptical section prameters (th is the major axis and h is the minor axis)
+        # by default the calculations are made for a revolution axis of the cylinder is (0, 1, 0)
+        th = self.thickness/2
+        h = self.height
+        temp = spy.sqrt(th**2-x**2)
+        corde = spy.Matrix([x, 0, h/th*temp]) # default point coordinates on the elliptical section
+        # compute rotation angles in case the revolution axis the user gives is not (0, 1, 0)
+        theta = np.arccos(self.revol_axis[2])
+        if (self.revol_axis[0]==0):
+            phi = 0
+        else :
+            phi = np.arctan(self.revol_axis[1]/self.revol_axis[0])
+        
+        # rotate default corde according to the position of the asked revolution axis
+        rot_phi = spy.Matrix(rotVU([0, 0, 1], phi)) # rotation of angle phi around (oz) axis
+        rot_theta = spy.Matrix(rotVU([1, 0, 0], theta)) # rotation of angle theta around (ox) axis
+        corde_r = rot_phi * corde
+        corde_rr = rot_theta * corde_r
+        # distance from each point of the surfaceto the revolution axis is then
+        # d_len = 1
+        d_len = spy.simplify( spy.sqrt(corde_rr[0]**2 + corde_rr[1]**2 + corde_rr[2]**2) )
+        # Equation 
+        a = u_rot.cross(MU_vec)
+        a_norm = spy.sqrt(a[0]**2 + a[1]**2 + a[2]**2)
+        b_norm = spy.sqrt(self.revol_axis[0]**2 + self.revol_axis[1]**2 + self.revol_axis[2]**2)
+        
+        func = spy.simplify( a_norm - d_len * b_norm )
 
         return func
 
@@ -186,21 +200,36 @@ class parabolicCollector:
 
         return x(theta_val, phi_val, z_val), y(theta_val, phi_val, z_val), z_val
 
-    def parabola_aperture_conic_section(self, phi):
+    def cylinder_aperture_rectangular_section(self, phi: float):
         """
-        This function defines the parabola aperture function (a conic section)
+        This function defines the cylinder aperture function (a rectangular section)
         :param phi: angle phi value
         :return: numpy vector [x,y,z]
         """
-        a = np.array([self.diameter_x/2 * np.cos(phi), self.diameter_y/2 * np.sin(phi), self.z_max])
-        vec = np.dot(self.rot_x, a)
-
+        h = self.length
+        d = self.thickness
+        phi_1 = np.arctan(d/h)
+        phi_2 = np.pi - phi_1
+        phi_3 = np.pi + phi_1
+        phi_4 = 2 * np.pi - phi_1
+        vec = np.array([0, 0, 0])
+        if (phi>0.0) & (phi<phi_1):
+            vec = np.array([h/2 * np.tan(phi), h/2, self.z_max])
+        elif (phi>phi_1) & (phi<phi_2):
+            vec = np.array([d/2, d / (2*np.tan(phi)), self.z_max])
+        elif (phi>phi_2) & (phi<phi_3):
+            vec = np.array([h/2 * np.tan(phi), -h/2, self.z_max])
+        elif (phi>phi_3) & (phi<phi_4):
+            vec = np.array([-d/2, d / (2*np.tan(phi)), self.z_max])
+        elif phi>phi_4:
+            vec = np.array([h/2 * np.tan(phi), h/2, self.z_max])
+        
         return vec
 
-    def parabola_aperture_theta_limit(self, phi):
+    def cylinder_aperture_theta_limit(self, phi):
 
-        O = np.dot(self.rot_x, np.array([0, 0, self.z_max]))
-        M = self.parabola_aperture_conic_section(phi)
+        O = np.dot(self.rot_y, np.array([0, 0, self.z_max]))
+        M = self.cylinder_aperture_rectangular_section(phi)
         S = self.sun_pos
         OM = M-O
         a = Decimal(OM[0]**2 + OM[1]**2 + OM[2]**2).sqrt()
@@ -216,6 +245,7 @@ class parabolicCollector:
         return theta_lim
 
     def symbolic_gradients(self, func: spy.Function):
+        
         df_x = spy.diff(func, x)
         df_y = spy.diff(func, y)
         df_z = spy.diff(func, z)
@@ -223,6 +253,7 @@ class parabolicCollector:
         return df_x, df_y, df_z
 
     def surf_normal_unit_vec(self, xv, yv, zv):
+        
         vec = np.zeros(3)
         # t1 = self.grad_x_lambda(xv,yv,zv)
         # t2 = self.grad_y_lambda(xv,yv,zv)
