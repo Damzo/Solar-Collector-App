@@ -251,6 +251,8 @@ class left_content:
         self.inc_rayClr_value = self.c_object.inc_color.value
         self.refl_rayClr_value = self.c_object.refl_color.value
         
+        self.update_variables()
+        
             
     def __illumination_source(self, *args):
         if self.h_object.source_geometry.value==1:

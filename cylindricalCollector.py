@@ -1,4 +1,5 @@
 import imp
+from tabnanny import check
 import numpy as np
 import sympy as spy
 from rotationVectU import rotationVectU as rotVU
@@ -43,8 +44,8 @@ class cylindricalCollector:
 
         # Rotation matrix
         self.rot_y = rotVU([0, 1, 0], khoi)
-        # Z coordinate of the higher point of the parabolic collector without rotation
-        self.z_max = surface[2] - self.z_0
+        # Z coordinate of the higher point of the cylindrical collector without rotation
+        self.z_max = -self.z_0 # surface[2] - self.z_0
         # Parabola surface expression to use
         self.surf_implicit_equ = self.symbolic_cylinder_equation()
         # Surface gradients equations
@@ -109,7 +110,7 @@ class cylindricalCollector:
         temp = spy.sqrt(th**2-x**2)
         corde = spy.Matrix([x, 0, h/th*temp]) # default point coordinates on the elliptical section
         # compute rotation angles in case the revolution axis the user gives is not (0, 1, 0)
-        theta = np.arccos(self.revol_axis[2])
+        theta = np.pi/2 - np.arccos(self.revol_axis[2])
         if (self.revol_axis[0]==0):
             phi = 0
         else :
@@ -119,14 +120,14 @@ class cylindricalCollector:
         rot_phi = spy.Matrix(rotVU([0, 0, 1], phi)) # rotation of angle phi around (oz) axis
         rot_theta = spy.Matrix(rotVU([1, 0, 0], theta)) # rotation of angle theta around (ox) axis
         corde_r = rot_phi * corde
-        corde_rr = rot_theta * corde_r
+        corde_rr = corde # rot_theta * corde_r
         # distance from each point of the surfaceto the revolution axis is then
         # d_len = 1
         d_len = spy.simplify( spy.sqrt(corde_rr[0]**2 + corde_rr[1]**2 + corde_rr[2]**2) )
         # Equation 
         a = u_rot.cross(MU_vec)
         a_norm = spy.sqrt(a[0]**2 + a[1]**2 + a[2]**2)
-        b_norm = spy.sqrt(self.revol_axis[0]**2 + self.revol_axis[1]**2 + self.revol_axis[2]**2)
+        b_norm = 1.0 # spy.sqrt(self.revol_axis[0]**2 + self.revol_axis[1]**2 + self.revol_axis[2]**2)
         
         func = spy.simplify( a_norm - d_len * b_norm )
 
@@ -142,8 +143,8 @@ class cylindricalCollector:
         # unit vector of the incident rays
         u_inc = [spy.sin(theta) * spy.cos(phi), spy.sin(theta) * spy.sin(phi), -spy.cos(theta)]
         # Equations
-        x_equ = (z - self.sun_pos[2]) / u_inc[2] * u_inc[0] + self.sun_pos[0]
-        y_equ = (z - self.sun_pos[2]) / u_inc[2] * u_inc[1] + self.sun_pos[1]
+        y_equ = (z - self.sun_pos[2]) / u_inc[2] * u_inc[0] + self.sun_pos[0]
+        x_equ = (z - self.sun_pos[2]) / u_inc[2] * u_inc[1] + self.sun_pos[1]
 
         return x_equ, y_equ
 
@@ -171,7 +172,7 @@ class cylindricalCollector:
         """
         z, theta, phi = spy.symbols('z theta phi')
         equ_eval = spy.Eq(func.subs({theta: theta_val, phi: phi_val}),0)
-        ans = spy.solve(equ_eval, z)
+        ans = spy.solve(equ_eval, z, check=False)
 
         return np.asarray(ans, dtype=np.float)
 
@@ -206,23 +207,24 @@ class cylindricalCollector:
         :param phi: angle phi value
         :return: numpy vector [x,y,z]
         """
-        h = self.length
+        L = self.length
         d = self.thickness
-        phi_1 = np.arctan(d/h)
+        phi_1 = np.arctan(d/L)
         phi_2 = np.pi - phi_1
         phi_3 = np.pi + phi_1
         phi_4 = 2 * np.pi - phi_1
         vec = np.array([0, 0, 0])
-        if (phi>0.0) & (phi<phi_1):
-            vec = np.array([h/2 * np.tan(phi), h/2, self.z_max])
-        elif (phi>phi_1) & (phi<phi_2):
+        
+        if (phi>=0.0) & (phi<=phi_1):
+            vec = np.array([L/2 * np.tan(phi), L/2, self.z_max])
+        elif (phi>phi_1) & (phi<=phi_2):
             vec = np.array([d/2, d / (2*np.tan(phi)), self.z_max])
-        elif (phi>phi_2) & (phi<phi_3):
-            vec = np.array([h/2 * np.tan(phi), -h/2, self.z_max])
-        elif (phi>phi_3) & (phi<phi_4):
-            vec = np.array([-d/2, d / (2*np.tan(phi)), self.z_max])
+        elif (phi>phi_2) & (phi<=phi_3):
+            vec = np.array([-L/2 * np.tan(phi), -L/2, self.z_max])
+        elif (phi>phi_3) & (phi<=phi_4):
+            vec = np.array([-d/2, -d / (2*np.tan(phi)), self.z_max])
         elif phi>phi_4:
-            vec = np.array([h/2 * np.tan(phi), h/2, self.z_max])
+            vec = np.array([L/2 * np.tan(phi), L/2, self.z_max])
         
         return vec
 

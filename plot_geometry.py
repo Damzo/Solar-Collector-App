@@ -220,4 +220,5 @@ class plot_geometry:
         ipv.ylim(-ry, ry)
         ipv.zlim(-rz, rz)
         
-        return phi_tab, z_tab, rx, ry, inters, inters_lambda, yl_min, yl_max, zl_min, zl_max
+        # return phi_tab, z_tab, rx, ry, inters, inters_lambda, yl_min, yl_max, zl_min, zl_max
+        return phi_tab, z_tab, rx, ry, inters, inters_lambda, -ry, ry, -rz, 0
