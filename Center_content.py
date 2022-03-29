@@ -4,7 +4,7 @@ import ipywidgets as widgets
 
 class center_content:
     style = {'description_width': 'initial'}
-    item_layout = widgets.Layout(justify_content='center', margin_left='250px')
+    item_layout = widgets.Layout(justify_content='center', margin_left='100px', width='auto')
 
     def __init__(self):
 
