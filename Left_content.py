@@ -5,7 +5,7 @@ import numpy as np
 class left_content:
     style = {'description_width': 'initial'}
     item_layout = widgets.Layout( width='auto')
-    plot_surf_bt = widgets.Button(description='Plot Geometry', button_style='danger', style=style, icon='compass-dafting',
+    plot_surf_bt = widgets.Button(description='Plot Geometry', button_style='danger', style=style, icon='pencil-square-o',
                                       layout=item_layout)
     plot_inc_bt = widgets.Button(description='Plot Incident Rays', button_style='warning', style=style,
                                     layout=item_layout)

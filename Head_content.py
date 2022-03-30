@@ -29,10 +29,11 @@ class head_content:
         box_layout = widgets.Layout(
                 # display='flex',
                 flex_flow='column',
-                margin='100px auto 50px auto',
+                margin='auto auto 50px auto',
                 # align_items='stretch',
                 width='auto',
-                justify_content='center')
+                justify_content='center',
+                align_items = 'center')
 
         header_cont = widgets.VBox([
             self.title,
