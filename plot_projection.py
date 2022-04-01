@@ -45,7 +45,7 @@ class plot_projection:
 
         phi_tab = np.linspace(0, 2*np.pi, self.n_phi, endpoint=False)
         
-        if not(plt.isinteractive):
+        if plt.isinteractive:
             plt.ion()
         plt.figure(num=1)
         self.right_instance.proj_scene.clear(keep_observers=False)

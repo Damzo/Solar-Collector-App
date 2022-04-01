@@ -71,7 +71,7 @@ class footer_content:
         
         self.tab.children = [self.tab1_content, self.tab2_content, self.tab3_content]
         self.tab_idx = 0
-        self.tab.observe( self.__selected_tab, names='selected_index')
+        # self.tab.observe( self.__selected_tab, names='selected_index')
     
     def api_request(self, start_year=2020, end_year=2020):
         end_point = "https://power.larc.nasa.gov/api/temporal/monthly/point"
@@ -128,10 +128,10 @@ class footer_content:
         Wind_Speed[:,1] = [i[4:6] for i in WS2M[:,0]]
         Wind_Speed[:,2] = WS2M[:,1]
         
-        return All_Sky_Irradiance, Clear_Sky_Irradiance, Relative_Humidity, Specific_Humidity, Wind_Speed, units
+        return r, All_Sky_Irradiance, Clear_Sky_Irradiance, Relative_Humidity, Specific_Humidity, Wind_Speed, units
     
     def plot_raw2D_datas(self, data_2D, area):
-        if not(plt.isinteractive):
+        if plt.isinteractive:
             plt.ion()
         plt.figure(num=4)
         plt.imshow(np.rot90(data_2D))
@@ -139,7 +139,12 @@ class footer_content:
     def plot_thermal_datas(self):
         start = str(self.start_date.value)
         end = str(self.end_date.value)
-        All_Sky_Irradiance, Clear_Sky_Irradiance, Relative_Humidity, Specific_Humidity, Wind_Speed, units = self.api_request(start[0:5], end[0:5])
+        r, All_Sky_Irradiance, Clear_Sky_Irradiance, Relative_Humidity, Specific_Humidity, Wind_Speed, units = self.api_request(int(start[0:4]), int(end[0:4]))
+        
+        with self.out_location:
+                print('API response code: ', r.status_code)
+
+        
         plt.figure(num=4)
         x = All_Sky_Irradiance[:,1]
         ticks = []
