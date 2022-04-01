@@ -36,7 +36,7 @@ class left_content:
         self.rot_angle = widgets.FloatText(
             value=0.0,
             description='Rotation angle in degrees',
-            disabled=False, style=self.style, layout=self.item_layout)
+            disabled=True, style=self.style, layout=self.item_layout)
 
         self.source_label = widgets.Label(value="Source position coordinates:")
         self.source_posX = widgets.FloatText(

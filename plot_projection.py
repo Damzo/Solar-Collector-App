@@ -45,7 +45,7 @@ class plot_projection:
 
         phi_tab = np.linspace(0, 2*np.pi, self.n_phi, endpoint=False)
         
-        if plt.isinteractive:
+        if not(plt.isinteractive):
             plt.ion()
         plt.figure(num=1)
         self.right_instance.proj_scene.clear(keep_observers=False)
@@ -83,7 +83,10 @@ class plot_projection:
         plt.xlim([xmin, xmax])
         plt.ylim([ymin, ymax])
         
-        return Z
+        # Compute collection area
+        area = self.parabolic.collection_area()
+        
+        return Z, area
         
     def plot_proj_ringArray(self):
 
@@ -100,6 +103,7 @@ class plot_projection:
         
         internal_rings = []
         kk = 0
+        
         for i in np.arange(self.N):
             internal_rings.append(pmc((self.focs[i], self.focs[i], self.h_2D[i, 0]), 
                                       self.pt_source_pos, 0.0, z_0=self.focs[0]-self.focs[i]))
@@ -137,7 +141,10 @@ class plot_projection:
         plt.xlim([xmin, xmax])
         plt.ylim([ymin, ymax])
         
-        return Z
+        # Compute collection area
+        area = internal_rings[-1].collection_area()
+        
+        return Z, area
         
         
     def plot_proj_cylinder(self):
@@ -182,4 +189,7 @@ class plot_projection:
         plt.xlim([xmin, xmax])
         plt.ylim([ymin, ymax])
         
-        return Z
+        # Compute collection area
+        area = self.cylinder.collection_area()
+        
+        return Z, area

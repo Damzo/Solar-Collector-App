@@ -72,7 +72,7 @@ class parabolicCollector:
 
         self.__init__(**inputdatas)
 
-    def compute_area(self, r: Union[float, np.ndarray], h: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+    def compute_material_surface(self, r: Union[float, np.ndarray], h: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
         """
         :return: area of the parabola, same type as inputs. r and h should have the same shape.
         :type h: parabola height, float or numpy array
@@ -87,6 +87,12 @@ class parabolicCollector:
         area = a * (b - r**3)
 
         return area
+    
+    def collection_area(self):
+        # we should consider the angle of collection in future versions...
+        a = np.pi * self.diameter_x/2 * self.diameter_y/2
+        
+        return a
 
     def compute_sectionLength(self, r: Union[float, np.ndarray], f: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
         """

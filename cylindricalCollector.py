@@ -77,7 +77,7 @@ class cylindricalCollector:
 
         self.__init__(**inputdatas)
 
-    def compute_area(self, minor_axis: Union[float, np.ndarray], major_axis: Union[float, np.ndarray],
+    def compute_material_surface(self, minor_axis: Union[float, np.ndarray], major_axis: Union[float, np.ndarray],
                      length: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
         """
         :return: area of the lateral cylinder, same type as inputs. r and h should have the same shape.
@@ -95,6 +95,12 @@ class cylindricalCollector:
         area = a * length
 
         return area
+    
+    def collection_area(self):
+        # we should consider the angle of collection in future versions...
+        a = self.length * self.thickness
+        
+        return a
 
 
     def symbolic_cylinder_equation(self):
