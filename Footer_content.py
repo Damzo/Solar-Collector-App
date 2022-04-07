@@ -13,9 +13,10 @@ class footer_content:
     def __init__(self) -> None:
         self.fig_size = (2.5, 2)
         # for raw 2D analysis
-        self.xy_sun = plt.figure(num=2, figsize=self.fig_size)
-        self.xy_temperature = plt.figure(num=3, figsize=self.fig_size)
-        self.xy_radiation = plt.figure(num=4, figsize=self.fig_size)
+        self.xy_conc_ratio = plt.figure(num=2, figsize=self.fig_size)
+        self.xy_conc_ratio.suptitle('Concentration ratio')
+        self.xy_radiation = plt.figure(num=3, figsize=self.fig_size)
+        self.xy_temperature = plt.figure(num=4, figsize=self.fig_size)
         self.radiation_label = widgets.Label('Solar irradiation (W/m^2)')
         self.raw_radiation = widgets.FloatText(
             value=4.5,
@@ -62,7 +63,7 @@ class footer_content:
         for i in range(len(tab_titles)):
             self.tab.set_title(i, tab_titles[i])
         self.tab1_content = widgets.HBox([widgets.VBox([self.radiation_label,self.raw_radiation, self.out_location, self.plot_Analysis]), 
-                                          self.xy_radiation.canvas, self.xy_sun.canvas, self.xy_temperature.canvas])
+                                          self.xy_conc_ratio.canvas, self.xy_radiation.canvas, self.xy_temperature.canvas])
         self.tab1_content.layout.display='flex'
         self.tab2_content = widgets.HBox([info_box, self.map_box, self.time_radiation.canvas, 
                                      self.time_temperature.canvas])
@@ -130,10 +131,13 @@ class footer_content:
         
         return r, All_Sky_Irradiance, Clear_Sky_Irradiance, Relative_Humidity, Specific_Humidity, Wind_Speed, units
     
-    def plot_raw2D_datas(self, data_2D, area):
+    def plot_raw2D_datas(self, x, y, data_2D, area):
         if plt.isinteractive:
             plt.ion()
-        plt.figure(num=4)
+        x_2D, y_2D = np.mgrid[x, y]
+        # receptor area
+        area_r = x_2D*y_2D
+        plt.figure(num=2)
         plt.imshow(np.rot90(data_2D))
     
     def plot_thermal_datas(self):
@@ -145,7 +149,7 @@ class footer_content:
                 print('API response code: ', r.status_code)
 
         
-        plt.figure(num=4)
+        plt.figure(num=3)
         x = All_Sky_Irradiance[:,1]
         ticks = []
         for i in range(x.size):

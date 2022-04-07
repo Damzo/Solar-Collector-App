@@ -153,6 +153,14 @@ class cylindricalCollector:
         x_equ = (z - self.sun_pos[2]) / u_inc[2] * u_inc[1] + self.sun_pos[1]
 
         return x_equ, y_equ
+    
+    def arbitrary_ray_equation(unit_vec: np.ndarray):
+        
+        z, x_equ, y_equ = spy.symbols('z x y')
+        y_equ = z / unit_vec[2] * unit_vec[0]
+        x_equ = z / unit_vec[2] * unit_vec[1]
+        
+        return x_equ, y_equ
 
     def symbolic_incident_ray_intersection(self, inc_raysX:spy.Function, inc_raysY: spy.Function, surface: spy.Function):
         """

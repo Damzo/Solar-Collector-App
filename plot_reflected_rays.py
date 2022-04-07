@@ -58,7 +58,7 @@ class plot_reflected_rays:
         for ii in np.arange(self.n_phi):
             phi_v = phi_tab[ii]
             theta_limit = float(self.parabolic.parabola_aperture_theta_limit(phi_v))
-            for theta_v in np.linspace(0, theta_limit, self.n_theta, endpoint=False):
+            for theta_v in np.linspace(0, theta_limit*0.99, self.n_theta, endpoint=True):
                 z_i = self.parabolic.solve_incident_intersection(self.inters, theta_v, phi_v)
                 x_refl, y_refl, z_refl = self.parabolic.reflected_ray(theta_v, phi_v,
                                                             np.linspace(np.min(z_i), 3*self.h, 5))
@@ -88,7 +88,7 @@ class plot_reflected_rays:
                 phi_v = phi_tab[ii]
                 theta_limit_max = float(self.parabola_rings[i].parabola_aperture_theta_limit(phi_v))
                 theta_limit_min = float(internal_rings[i].parabola_aperture_theta_limit(phi_v))
-                theta_tab = np.linspace(theta_limit_min, theta_limit_max, self.n_theta, endpoint=False)
+                theta_tab = np.linspace(theta_limit_min, theta_limit_max*0.99, self.n_theta, endpoint=True)
                 for jj in np.arange(self.n_theta):
                     theta_v = theta_tab[jj]
                     z_i = self.parabola_rings[i].solve_incident_intersection(inters, theta_v, phi_v)
@@ -108,10 +108,10 @@ class plot_reflected_rays:
         for ii in np.arange(self.n_phi):
             phi_v = phi_tab[ii]
             theta_limit = float(self.cylinder.cylinder_aperture_theta_limit(phi_v))
-            for theta_v in np.linspace(0, theta_limit, self.n_theta, endpoint=False):
+            for theta_v in np.linspace(0, theta_limit*0.99, self.n_theta, endpoint=True):
                 z_i = self.cylinder.solve_incident_intersection(self.inters, theta_v, phi_v)
                 x_refl, y_refl, z_refl = self.cylinder.reflected_ray(theta_v, phi_v,
-                                                            np.linspace(np.min(z_i), 3*self.h_cyl, 5))
+                                                            np.linspace(np.min(z_i), 5*self.h_cyl, 5))
                 ipv.plot(x_refl, y_refl, z_refl, color=self.refl_rayClr_value)
         ipv.xlim(-self.rx, self.rx)
         ipv.ylim(self.yl_min, self.yl_max)

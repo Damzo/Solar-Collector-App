@@ -74,6 +74,7 @@ class plot_projection:
         positions = np.vstack([xi.ravel(), yi.ravel()])
         values = np.vstack([xplan, yplan])
         kernel = stats.gaussian_kde(values)
+        # return the kernel calculations and transpose it
         Z = np.reshape(kernel(positions).T, xi.shape)
         Z = Z / np.max(Z)
         
@@ -191,5 +192,8 @@ class plot_projection:
         
         # Compute collection area
         area = self.cylinder.collection_area()
+        # Extend
+        x_extend = np.mgrid[xmin:xmax:nbins * 1j]
+        y_extend = np.mgrid[ymin:ymax:nbins * 1j]
         
-        return Z, area
+        return x_extend, y_extend, Z, area
