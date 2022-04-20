@@ -13,3 +13,4 @@ scipy
 sympy
 voila
 jinja2
+jupyterlab==3
