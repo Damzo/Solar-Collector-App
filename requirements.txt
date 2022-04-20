@@ -5,10 +5,11 @@ ipython
 ipyvolume==0.6.0a8
 ipywidgets
 matplotlib
-nodejs>=0.2
+nodejs
 numpy
 pandas
 requests
 scipy
 sympy
 voila
+jinja2
