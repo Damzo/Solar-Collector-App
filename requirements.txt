@@ -2,10 +2,10 @@ bqplot
 ipyleaflet
 ipympl
 ipython
-ipyvolume
+ipyvolume==0.6.0a8
 ipywidgets
 matplotlib
-nodejs
+nodejs>=0.2
 numpy
 pandas
 requests
