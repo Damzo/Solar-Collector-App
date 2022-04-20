@@ -6,7 +6,8 @@ class center_content:
     style = {'description_width': 'initial'}
     item_layout = widgets.Layout(justify_content='center', margin_left='100px', width='auto')
     analysis_bt = widgets.ToggleButton(value=False, description='Show analysis section', button_style='info', 
-                                       tooltip='show/hide analysis section',layout=item_layout)
+                                       tooltip='show/hide analysis section',
+                                       layout=widgets.Layout(justify_content='center', margin_left='100px', width='75%'))
 
     def __init__(self):
 
@@ -59,8 +60,8 @@ class center_content:
         rays_color.layout.justify_content='center'
         part_1 = widgets.VBox([rays_color, widgets.HBox([self.main_scene, widgets.VBox([zoom, focus_xy])])])
         center_cont = widgets.VBox([part_1, self.analysis_bt])
-        # center_cont.layout.align_items = 'flex-end'
-        # center_cont.layout.justify_content = 'center'
+        center_cont.layout.align_items = 'center'  # 'flex-end'
+        center_cont.layout.justify_content = 'center'
         
         # Observes and links
         widgets.jslink((self.focus_zSlider, 'value'), (self.focus_zText, 'value'))

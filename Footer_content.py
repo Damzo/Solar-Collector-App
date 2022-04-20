@@ -23,22 +23,22 @@ class footer_content:
             disabled=False, style=self.style, layout=self.item_layout)
         self.plot_Analysis = widgets.Button(description='Plot datas', button_style='success', layout=self.item_layout)
         
-        # Map box for selecting a GPS position
-        univ_kara = (9.68803261638838, 1.1285112820273637)
-        self.m = Map(zoom=5, center=univ_kara, layout=Layout(width='250px', height='250px'))
+        # Map box for selecting a GPS position  
+        univ_kara = (9, 1)
+        self.m = Map(center=univ_kara, zoom=5, layout=Layout(width='90%', height='250px'))
         self.marker = Marker(location=univ_kara, icon=AwesomeIcon(name="check", marker_color='green', icon_color='darkgreen'))
         self.m.add_control(SearchControl(
-        position="topleft",
-        url='https://nominatim.openstreetmap.org/search?format=json&q={s}',
-        zoom=5,
-        marker=self.marker
-        ))
+                            position="topright",
+                            url='https://nominatim.openstreetmap.org/search?format=json&q={s}',
+                            zoom=5,
+                            marker=self.marker
+                            ))
         self.m.add_layer(self.marker)
         self.location = univ_kara
         self.marker.on_move(self.__handle_move)
         self.close_but = widgets.Button(icon='window-close', layout=Layout(width='40px', height='40px'))
         self.close_but.on_click(self.__close_map)
-        self.map_box = widgets.Box([self.m, self.close_but], layout=Layout(width='260px', height='260px'))
+        self.map_box = widgets.Box([self.m, self.close_but], layout=Layout(width='400px', height='260px'))
         
         self.gps_bt = widgets.Button(description='Select location', button_style='info', style=self.style, icon='map-marker',
                                       layout=self.item_layout)
@@ -168,6 +168,7 @@ class footer_content:
     
     def __handle_move(self, *args, **kwargs):
             self.location = self.marker.location
+            # self.m.center = self.location
             with self.out_location:
                 self.out_location.clear_output()
                 print('Longitude: ')
