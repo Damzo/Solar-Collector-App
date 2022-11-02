@@ -111,7 +111,7 @@ class plot_reflected_rays:
             for theta_v in np.linspace(0, theta_limit*0.99, self.n_theta, endpoint=True):
                 z_i = self.cylinder.solve_incident_intersection(self.inters, theta_v, phi_v)
                 x_refl, y_refl, z_refl = self.cylinder.reflected_ray(theta_v, phi_v,
-                                                            np.linspace(np.min(z_i), 5*self.h_cyl, 5))
+                                                            np.linspace(np.min(z_i), 1/(4*self.h_cyl), 5))
                 ipv.plot(x_refl, y_refl, z_refl, color=self.refl_rayClr_value)
         ipv.xlim(-self.rx, self.rx)
         ipv.ylim(self.yl_min, self.yl_max)

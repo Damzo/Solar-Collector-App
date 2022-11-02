@@ -87,7 +87,7 @@ class plot_projection:
         # Compute collection area
         area = self.parabolic.collection_area()
         
-        return Z, area
+        return Z, area, xi, yi
         
     def plot_proj_ringArray(self):
 
@@ -145,7 +145,7 @@ class plot_projection:
         # Compute collection area
         area = internal_rings[-1].collection_area()
         
-        return Z, area
+        return Z, area, xi, yi
         
         
     def plot_proj_cylinder(self):
@@ -192,8 +192,6 @@ class plot_projection:
         
         # Compute collection area
         area = self.cylinder.collection_area()
-        # Extend
-        x_extend = np.mgrid[xmin:xmax:nbins * 1j]
-        y_extend = np.mgrid[ymin:ymax:nbins * 1j]
+
         
-        return x_extend, y_extend, Z, area
+        return Z, area, xi, yi

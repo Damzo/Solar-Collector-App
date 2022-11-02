@@ -222,7 +222,7 @@ class cylindricalCollector:
         :return: numpy vector [x,y,z]
         """
         L = self.length
-        d = self.thickness
+        d = self.thickness - 1e-3
         phi_1 = np.arctan(d/L)
         phi_2 = np.pi - phi_1
         phi_3 = np.pi + phi_1

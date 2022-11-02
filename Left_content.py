@@ -313,7 +313,7 @@ class left_content:
     def __variables_cylinder(self, *args):
         self.L = self.length.value
         self.th = self.thickness.value
-        self.h_cyl = self.height_cyl.value
+        self.h_cyl = self.height_cyl.value*0.99
         self.khoi = self.rot_angle.value/180 * np.pi
         
         self.c_object.focus_zoom.min = 0
