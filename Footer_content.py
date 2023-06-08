@@ -1,20 +1,18 @@
-from ast import Try
-from cProfile import label
 from ipywidgets import widgets, Layout
-import ipyvolume as ipv
+# import ipyvolume as ipv
 import matplotlib.pyplot as plt
-from matplotlib import cm
+# from matplotlib import cm
 from ipyleaflet import Map, SearchControl, Marker, AwesomeIcon
 import requests
 import json
 import numpy as np
 import datetime
 
+
 class footer_content:
     style = {'description_width': 'initial'}
-    item_layout = widgets.Layout( width='auto')
-    
-    
+    item_layout = widgets.Layout(width='auto')
+
     def __init__(self) -> None:
         self.fig_size = (2, 2)
         # for raw 2D analysis
@@ -32,17 +30,18 @@ class footer_content:
             value=4.5,
             disabled=False, style=self.style, layout=self.item_layout)
         self.plot_Analysis = widgets.Button(description='Plot datas', button_style='success', layout=self.item_layout)
-        
+
         # Map box for selecting a GPS position  
         univ_kara = (9, 1)
         self.m = Map(center=univ_kara, zoom=5, layout=Layout(width='90%', height='250px'))
-        self.marker = Marker(location=univ_kara, icon=AwesomeIcon(name="check", marker_color='green', icon_color='darkgreen'))
+        self.marker = Marker(location=univ_kara,
+                             icon=AwesomeIcon(name="check", marker_color='green', icon_color='darkgreen'))
         search_instance = SearchControl(
-                            position="topright",
-                            url='https://nominatim.openstreetmap.org/search?format=json&q={s}',
-                            zoom=5,
-                            marker=self.marker
-                            )
+            position="topright",
+            url='https://nominatim.openstreetmap.org/search?format=json&q={s}',
+            zoom=5,
+            marker=self.marker
+        )
         self.m.add_control(search_instance)
         self.m.add_layer(self.marker)
         self.location = univ_kara
@@ -51,91 +50,107 @@ class footer_content:
         self.close_but = widgets.Button(icon='window-close', layout=Layout(width='40px', height='40px'))
         self.close_but.on_click(self.__close_map)
         self.map_box = widgets.Box([self.m, self.close_but], layout=Layout(width='250px', height='500px'))
-        
-        self.gps_bt = widgets.Button(description='Select location', button_style='info', style=self.style, icon='map-marker',
-                                      layout=self.item_layout)
+
+        self.gps_bt = widgets.Button(description='Select location', button_style='info', style=self.style,
+                                     icon='map-marker',
+                                     layout=self.item_layout)
         self.gps_bt.on_click(self.__show_map)
         self.out_location = widgets.Output()
 
         actual_date = datetime.datetime.utcnow()
-        self.start_date = widgets.Dropdown(description = 'Start date',
-                                           options = [i for i in range(1981, actual_date.year)],
-                                           value = 1981,
-                                           disabled = False)
+        self.start_date = widgets.Dropdown(description='Start date',
+                                           options=[i for i in range(1981, actual_date.year)],
+                                           value=1981,
+                                           disabled=False)
         self.start_date.layout.width = 'auto'
-        self.end_date = widgets.Dropdown(description = 'End date',
-                                           options = [i for i in range(1981, actual_date.year)],
-                                           value = 1981,
-                                           disabled = False)
+        self.end_date = widgets.Dropdown(description='End date',
+                                         options=[i for i in range(1981, actual_date.year)],
+                                         value=1981,
+                                         disabled=False)
         self.end_date.layout.width = 'auto'
-        
+
         # for meteorological data ploting
-        self.meteo_figures = plt.figure(num='Data from Nasa Power Data', figsize=(4,3), constrained_layout=True) #
+        self.meteo_figures = plt.figure(num='Data from Nasa Power Data', figsize=(4, 3), constrained_layout=True)  #
         self.meteo_figures.canvas.header_visible = False
 
         self.meteo_data_dropdown = widgets.Dropdown(
-            options={'All Sky Irradiance':1,
-                'Clear & Diffuse_Irradiance':2,
-                'Midday Insolation':3,
-                'All Sky Albedo':4,
-                'Average Solar Declination':5,
-                'Average Hourly Solar Angles':6,
-                'Humidity at 2m':7,
-                'Wind_Speed at 2m':8,
-                'Temperature at 2m':9},
+            options={'All Sky Irradiance': 1,
+                     'Clear & Diffuse_Irradiance': 2,
+                     'Midday Insolation': 3,
+                     'All Sky Albedo': 4,
+                     'Average Solar Declination': 5,
+                     'Average Hourly Solar Angles': 6,
+                     'Humidity at 2m': 7,
+                     'Wind_Speed at 2m': 8,
+                     'Temperature at 2m': 9},
             # options={'Sky Irradiance':1,
             #          'Humidity at 2m':2,
             #          'Wind_Speed':3,
             #          'Temperature':4},
-            value = 1,
+            value=1,
             description='',
             disabled=False
             # button_style='danger' # 'success', 'info', 'warning', 'danger' or ''
-            )
+        )
         self.meteo_data_dropdown.layout.width = 'auto'
 
         self.meteo_data_dropdown.observe(self.__meteo_data_plot_change, names='value')
-        
+
         self.time_radiation = plt.figure(num='Sky Radiation', figsize=self.fig_size)
         self.time_radiation.canvas.header_visible = False
         self.time_humidity = plt.figure(num='Humidity', figsize=self.fig_size)
         self.time_humidity.canvas.header_visible = False
         self.time_wind = plt.figure(num='Wind Speed', figsize=self.fig_size)
         self.time_wind.canvas.header_visible = False
-        
+
         # for Solar thermal analysis
         self.time_tmp1 = plt.figure(num=5, figsize=self.fig_size)
         self.time_tmp2 = plt.figure(num=6, figsize=self.fig_size)
-        
+
         # for Solar photovoltaic analysis
         self.time_tmp1 = plt.figure(num=5, figsize=self.fig_size)
         self.time_tmp2 = plt.figure(num=6, figsize=self.fig_size)
-        
+
         # design_footer
-        tab_titles = ['Raw 2D analysis', 'Meteorological data', 'Solar Thermal', 'Solar Photovoltaic']
-        raw_box = widgets.VBox([self.radiation_label,self.raw_radiation, self.out_location, self.plot_Analysis])
+        raw_box = widgets.VBox([self.radiation_label, self.raw_radiation, self.out_location, self.plot_Analysis])
         info_box = widgets.VBox([self.gps_bt, self.out_location, self.start_date, self.end_date, self.plot_Analysis])
 
-        self.tab = widgets.Tab()
-        for i in range(len(tab_titles)):
-            self.tab.set_title(i, tab_titles[i])
         self.tab1_content = widgets.HBox([raw_box, self.xy_radiation.canvas, self.xy_conc_ratio.canvas])
-        self.tab1_content.layout.display='flex'
+        self.tab1_content.layout.display = 'flex'
         # self.tab2_content = widgets.HBox([info_box, self.map_box, self.time_radiation.canvas, 
         #                              self.time_humidity.canvas, self.time_wind.canvas])
-        self.tab2_content = widgets.HBox([widgets.VBox([info_box, self.meteo_data_dropdown]), self.map_box, 
-                                     self.meteo_figures.canvas])
-        self.tab2_content.layout.display='flex'
-        self.tab3_content = widgets.HBox([info_box, self.map_box, self.time_tmp1.canvas, 
-                                     self.time_tmp2.canvas])
-        self.tab3_content.layout.display='flex'
-        self.tab4_content = widgets.HBox([info_box, self.map_box, self.time_tmp1.canvas, 
-                                     self.time_tmp2.canvas])
-        self.tab4_content.layout.display='flex'
-        
+        self.tab2_content = widgets.HBox([widgets.VBox([info_box, self.meteo_data_dropdown]), self.map_box,
+                                          self.meteo_figures.canvas])
+        self.tab2_content.layout.display = 'flex'
+        self.tab3_content = widgets.HBox([info_box, self.map_box, self.time_tmp1.canvas,
+                                          self.time_tmp2.canvas])
+        self.tab3_content.layout.display = 'flex'
+        self.tab4_content = widgets.HBox([info_box, self.map_box, self.time_tmp1.canvas,
+                                          self.time_tmp2.canvas])
+        self.tab4_content.layout.display = 'flex'
+
+        self.tab = widgets.Tab()
+        tab_titles = ['Raw 2D analysis', 'Meteorological data', 'Solar Thermal', 'Solar Photovoltaic']
         self.tab.children = [self.tab1_content, self.tab2_content, self.tab3_content, self.tab4_content]
+        for i in range(len(tab_titles)):
+            self.tab.set_title(i, tab_titles[i])
         self.tab_idx = 0
-        self.tab.observe( self.__selected_tab, names='selected_index')
+        self.tab.observe(self.__selected_tab, names='selected_index')
+
+        self.api_response = []
+        self.All_Sky_Irradiance = []
+        self.Clear_Sky_Irradiance = []
+        self.All_Sky_Diffused_Irradiance = []
+        self.Midday_Insolation = []
+        self.All_Sky_Albedo = []
+        self.Average_Declination = []
+        self.Solar_Angle = []
+        self.Relative_Humidity = []
+        self.Specific_Humidity = []
+        self.Wind_Speed = []
+        self.Temperature = []
+        self.ticks = []
+        self.units = {}
 
     # method to request data from the Nasa database and put them on the right format for other methods
     def api_request(self, start_year=2020, end_year=2020):
@@ -160,12 +175,12 @@ class footer_content:
         latd = self.location[0]
         lgtd = self.location[1]
 
-        load = {'parameters': param, 'community': community, 'longitude': lgtd, 'latitude': latd, 
+        load = {'parameters': param, 'community': community, 'longitude': lgtd, 'latitude': latd,
                 'format': fmt, 'start': start_year, 'end': end_year}
         r = requests.get(end_point, params=load)
         data = json.loads(r.text)
 
-        if r.status_code==200 :
+        if r.status_code == 200:
             with self.out_location:
                 self.out_location.clear_output()
                 print('API response code: ', r.status_code)
@@ -224,8 +239,8 @@ class footer_content:
             MIDDAY_INSOL = data['properties']['parameter']['MIDDAY_INSOL']
             ALLSKY_SRF_ALB = data['properties']['parameter']['ALLSKY_SRF_ALB']
             SG_DEC = data['properties']['parameter']['SG_DEC']
-            list = [format(i, "02d") for i in range(24)]
-            SG_HRZ_HR = [data['properties']['parameter']['SG_HRZ_%s' % i] for i in list]
+            list_l = [format(i, "02d") for i in range(24)]
+            SG_HRZ_HR = [data['properties']['parameter']['SG_HRZ_%s' % i] for i in list_l]
             RH2M = data['properties']['parameter']['RH2M']
             QV2M = data['properties']['parameter']['QV2M']
             WS2M = data['properties']['parameter']['WS2M']
@@ -262,7 +277,7 @@ class footer_content:
 
             # slice years from months
 
-            x_values = [j for j in ALLSKY_SFC_SW_DWN[:-1, 0]]
+            x_val = [j for j in ALLSKY_SFC_SW_DWN[:-1, 0]]
 
             All_Sky_Irradiance = [i for i in ALLSKY_SFC_SW_DWN[:-1, 1]]
             Clear_Sky_Irradiance = [i for i in CLRSKY_SFC_SW_DWN[:-1, 1]]
@@ -315,11 +330,10 @@ class footer_content:
             Wind_Speed = []
             Temperature = []
             units = {}
-        
-        return r, All_Sky_Irradiance, Clear_Sky_Irradiance, All_Sky_Diffused_Irradiance,\
-               Midday_Insolation, All_Sky_Albedo, Average_Declination, Solar_Angle,\
-               Relative_Humidity, Specific_Humidity, Wind_Speed, Temperature, \
-               x_values, units
+
+        return r, All_Sky_Irradiance, Clear_Sky_Irradiance, All_Sky_Diffused_Irradiance, Midday_Insolation, \
+            All_Sky_Albedo, Average_Declination, Solar_Angle, Relative_Humidity, Specific_Humidity, Wind_Speed, \
+            Temperature, x_val, units
 
     # Method executed when user click on the button "Plot datas" under the tabs "Raw 2D analysis"
     def plot_raw2D_datas(self, data_2D, area, x, y):
@@ -333,31 +347,31 @@ class footer_content:
         ymax = np.max(y)
         input_rad = self.raw_radiation.value
         # focus area at 1/e of maximum 
-        focus = x[data_2D >= np.amax(data_2D)/np.e]
+        focus = x[data_2D >= np.amax(data_2D) / np.e]
         sigma1 = np.amax(focus)
-        focus = y[data_2D >= np.amax(data_2D)/np.e]
+        focus = y[data_2D >= np.amax(data_2D) / np.e]
         sigma2 = np.amax(focus)
         # Received energy "echantilloné"
         Er = input_rad * area
-        
+
         # Plot of the radiation on the receptor
-        Rd = (Er/(np.pi*sigma1*sigma2)) * data_2D
+        Rd = (Er / (np.pi * sigma1 * sigma2)) * data_2D
         plt.figure(num='Radiation on receptor')
         plt.imshow(np.rot90(Rd), extent=[xmin, xmax, ymin, ymax], interpolation='bilinear', cmap='magma')
         # plt.xticks(np.round(x,2), rotation=45)
         # plt.yticks(np.round(y,2), rotation=30)
         plt.title('Radiation W.hr/m²')
         plt.colorbar()
-        
+
         # Plot of the concentration ratio
-        Cr = (area/(np.pi*sigma1*sigma2)) * data_2D
+        Cr = (area / (np.pi * sigma1 * sigma2)) * data_2D
         plt.figure(num='Concentration ratio')
         plt.imshow(np.rot90(Cr), extent=[xmin, xmax, ymin, ymax], interpolation='bilinear', cmap='magma')
         # plt.xticks(np.round(x,2), rotation=45)
         # plt.yticks(np.round(y,2), rotation=30)
         plt.title('Concentration ratio')
         plt.colorbar()
-        
+
         # Plot of the Theoretical temperature
         # Tr = Cr
         # plt.figure(num='Theoretical temperature')
@@ -367,13 +381,14 @@ class footer_content:
 
     # Method executed when user click on the button "Plot datas" under the tabs "Meteorological data"
     def plot_meteo_datas(self):
-        self.api_response, self.All_Sky_Irradiance, self.Clear_Sky_Irradiance, self.All_Sky_Diffused_Irradiance, \
-        self.Midday_Insolation, self.All_Sky_Albedo, self.Average_Declination, self.Solar_Angle, \
-        self.Relative_Humidity, self.Specific_Humidity, self.Wind_Speed, self.Temperature, \
-        self.ticks, self.units \
-                = self.api_request(self.start_date.value, self.end_date.value)
 
-        if self.api_response.status_code == 200 :
+        self.api_response, self.All_Sky_Irradiance, self.Clear_Sky_Irradiance, self.All_Sky_Diffused_Irradiance, \
+            self.Midday_Insolation, self.All_Sky_Albedo, self.Average_Declination, self.Solar_Angle, \
+            self.Relative_Humidity, self.Specific_Humidity, self.Wind_Speed, self.Temperature, \
+            self.ticks, self.units \
+            = self.api_request(self.start_date.value, self.end_date.value)
+
+        if self.api_response.status_code == 200:
             plt.ion()
             self.__meteo_data_plot_change()
 
@@ -384,26 +399,26 @@ class footer_content:
 
     # Method executed when user click on the button "Plot datas" under the tabs "Solar Photovoltaic"
     def plot_photovoltaic_datas(self):
-        
+
         pass
-    
+
     def __handle_move(self, *args, **kwargs):
-            self.location = self.marker.location
-            # self.m.center = self.location
-            with self.out_location:
-                self.out_location.clear_output()
-                print('Longitude: ')
-                print(self.location[0])
-                print('')
-                print('Latitude: ')
-                print(self.location[1])
-            
+        self.location = self.marker.location
+        # self.m.center = self.location
+        with self.out_location:
+            self.out_location.clear_output()
+            print('Longitude: ')
+            print(self.location[0])
+            print('')
+            print('Latitude: ')
+            print(self.location[1])
+
     def __close_map(self, *args, **kwargs):
         self.map_box.layout = Layout(width='10px', height='10px')
-        
+
     def __show_map(self, *args, **kwargs):
         self.map_box.layout = Layout(width='250px', height='500px')
-        
+
     def __selected_tab(self, widget):
         self.tab_idx = widget['new']
 
@@ -435,35 +450,37 @@ class footer_content:
             self.meteo_figures.clf()
             self.ax2.cla()
 
-        if (num == 1):
+        if num == 1:
             # 'All Sky Irradiance': 1
-            self.__plotxy(y=self.All_Sky_Irradiance, label='All sky irradiance', y_unit=self.units['All_Sky_Irradiance'],
+            self.__plotxy(y=self.All_Sky_Irradiance, label='All sky irradiance',
+                          y_unit=self.units['All_Sky_Irradiance'],
                           fig_title='All sky irradiance')
 
-        elif (num == 2):
+        elif num == 2:
             # 'Clear & Diffused Irradiance': 2
             self.__plotxyy(y1=self.Clear_Sky_Irradiance, y2=self.All_Sky_Diffused_Irradiance,
-                      label1='Clear sky', label2='Diffused',
-                      y1_unit=self.units['Clear_Sky_Irradiance'], y2_unit=self.units['All_Sky_Diffused_Irradiance'],
-                      fig_title='Clear & Diffused Irradiance')
-            
-        elif (num == 3):
+                           label1='Clear sky', label2='Diffused',
+                           y1_unit=self.units['Clear_Sky_Irradiance'],
+                           y2_unit=self.units['All_Sky_Diffused_Irradiance'],
+                           fig_title='Clear & Diffused Irradiance')
+
+        elif num == 3:
             # 'Midday Insolation': 3
             self.__plotxy(y=self.Midday_Insolation, label='Midday Insolation', y_unit=self.units['Midday_Insolation'],
                           fig_title='Midday Insolation')
 
-        elif (num == 4):
+        elif num == 4:
             # 'All Sky Albedo': 4
             self.__plotxy(y=self.All_Sky_Albedo, label='Surface Albedo', y_unit=self.units['All_Sky_Albedo'],
                           fig_title='Surface Albedo')
 
-        elif (num == 5):
+        elif num == 5:
             # 'Average Solar Declination': 5
             self.__plotxy(y=self.Average_Declination, label='Average Solar Declination',
                           y_unit=self.units['Average_Solar_Declination'], fig_title='Average Solar Declination')
 
-        elif (num == 6):
-        # 'Average Hourly Solar Angles': 6
+        elif num == 6:
+            # 'Average Hourly Solar Angles': 6
             h_ticks = [format(i, "02d") for i in range(24)]
             z = np.zeros((24, 12))
             for w in range(24):
@@ -505,18 +522,18 @@ class footer_content:
         #     self.ax1.set_title('Average hourly solar angles')
         #     self.meteo_figures.canvas.flush_events()
 
-        elif (num == 7):
+        elif num == 7:
             # 'Humidity at 2m': 7
             self.__plotxyy(y1=self.Relative_Humidity, y2=self.Specific_Humidity,
                            label1='Relative Humidity', label2='Specific Humidity',
                            y1_unit=self.units['Relative_Humidity'],
                            y2_unit=self.units['Specific_Humidity'],
                            fig_title='Wind_Speed at 2m')
-        elif (num == 8):
+        elif num == 8:
             # 'Wind_Speed at 2m': 8
             self.__plotxy(y=self.Wind_Speed, label='Wind speed',
                           y_unit=self.units['Wind_Speed'], fig_title='Wind_Speed at 2m')
-        elif (num == 9):
+        elif num == 9:
             # 'Temperature at 2m': 9
             self.__plotxy(y=self.Temperature, label='Temperature',
                           y_unit=self.units['Temperature'], fig_title='Temperature at 2m')
@@ -541,27 +558,27 @@ class footer_content:
         self.ax2.set_ylabel(y2_unit)
         self.ax2.yaxis.label.set_color('red')
         self.ax2.tick_params(axis='y', color='red', labelcolor='red')
-        self.ax1.tick_params(axis='x', rotation = 60)
+        self.ax1.tick_params(axis='x', rotation=60)
         self.ax1.set_title(fig_title)
         # added legends
-        lns = lns1+lns2
-        labs = [l.get_label() for l in lns]
+        lns = lns1 + lns2
+        labs = [lv.get_label() for lv in lns]
         self.ax1.legend(lns, labs, loc=0)
         self.meteo_figures.canvas.flush_events()
 
     def __plotxy(self, y, label='', y_unit='', fig_title=''):
 
-            y = np.array(y, dtype=np.float16)
-            y[np.where(y == -999)] = np.nan
-            self.ax1 = self.meteo_figures.subplots()
-            self.ax1.plot(np.arange(12), y, color='blue', label=label)
-            self.ax1.set_xticks(np.arange(12))
-            self.ax1.set_xticklabels(self.ticks)
-            self.ax1.set_ylabel(y_unit)
-            self.ax1.yaxis.label.set_color('blue')
-            self.ax1.tick_params(axis='y', color='blue', labelcolor='blue')
-            self.ax1.tick_params(axis='x', rotation = 60)
-            self.ax1.set_title(fig_title)
-            # added legends
-            self.ax1.legend()
-            self.meteo_figures.canvas.flush_events()
+        y = np.array(y, dtype=np.float16)
+        y[np.where(y == -999)] = np.nan
+        self.ax1 = self.meteo_figures.subplots()
+        self.ax1.plot(np.arange(12), y, color='blue', label=label)
+        self.ax1.set_xticks(np.arange(12))
+        self.ax1.set_xticklabels(self.ticks)
+        self.ax1.set_ylabel(y_unit)
+        self.ax1.yaxis.label.set_color('blue')
+        self.ax1.tick_params(axis='y', color='blue', labelcolor='blue')
+        self.ax1.tick_params(axis='x', rotation=60)
+        self.ax1.set_title(fig_title)
+        # added legends
+        self.ax1.legend()
+        self.meteo_figures.canvas.flush_events()

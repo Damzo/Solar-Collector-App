@@ -1,1 +1,14 @@
 https://hub-binder.mybinder.ovh/user/damzo-solar-collector-app-b6ukhntn/doc/tree/main.ipynb
+
+1- equation du rayon incident (y=ax+b)
+
+Boucle:
+    2- trouver l'intersection avec la surface
+    2b- si pas d'intersection, on sort de la boucle
+
+    3- calculer le vecteur normal de la surface au point d'intersection
+
+    4- Application de Snell pour avoir l'équation du rayon réfléchi
+    4b- retourner au pt 2
+
+-----------------------------------------------------------
