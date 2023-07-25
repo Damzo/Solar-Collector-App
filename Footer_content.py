@@ -112,7 +112,7 @@ class footer_content:
         self.time_tmp2 = plt.figure(num=6, figsize=self.fig_size)
 
         # design_footer
-        raw_box = widgets.VBox([self.radiation_label, self.raw_radiation, self.out_location, self.plot_Analysis])
+        raw_box = widgets.VBox([self.radiation_label, self.raw_radiation, self.plot_Analysis]) # self.out_location
         info_box = widgets.VBox([self.gps_bt, self.out_location, self.start_date, self.end_date, self.plot_Analysis])
 
         self.tab1_content = widgets.HBox([raw_box, self.xy_radiation.canvas, self.xy_conc_ratio.canvas])
